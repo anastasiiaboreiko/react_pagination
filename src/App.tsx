@@ -20,14 +20,13 @@ export const App: React.FC = () => {
     <div className="container">
       <h1>Items with Pagination</h1>
 
-      {/* Move this markup to Pagination */}
       <Pagination
         total={total}
         perPage={perPage}
         currentPage={currentPage}
         onPageChange={setCurrentPage}
-        onPerPageChange={value => {
-          setPerPage(Number(value));
+        onPerPageChange={newPerPage => {
+          setPerPage(newPerPage);
           setCurrentPage(1);
         }}
       />

@@ -16,13 +16,13 @@ export const Pagination: React.FC<Props> = ({
   onPageChange,
   onPerPageChange,
 }) => {
-  const totalPages = Math.max(0, Math.ceil(total / perPage));
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
   const raw = currentPage ?? 1;
   const page = totalPages === 0 ? 1 : Math.min(Math.max(1, raw), totalPages);
   const start = total === 0 ? 0 : (page - 1) * perPage + 1;
   const end = Math.min(page * perPage, total);
-  const prevDisabled = page <= 1 || totalPages === 0;
-  const nextDisabled = page >= totalPages || totalPages === 0;
+  const prevDisabled = page <= 1;
+  const nextDisabled = page >= totalPages;
 
   return (
     <div>
@@ -73,14 +73,16 @@ export const Pagination: React.FC<Props> = ({
           </a>
         </li>
         {Array.from({ length: totalPages }, (_, i) => (
-          <li key={i} className={cn('page-item', { active: i + 1 === raw })}>
+          <li key={i} className={cn('page-item', { active: i + 1 === page })}>
             <a
               data-cy="pageLink"
               className="page-link"
               href="#1"
               onClick={e => {
                 e.preventDefault();
-                onPageChange(i + 1);
+                if (i + 1 !== page) {
+                  onPageChange(i + 1);
+                }
               }}
             >
               {i + 1}
