@@ -4,8 +4,9 @@ import cn from 'classnames';
 type Props = {
   total: number;
   perPage: number;
-  currentPage: number;
+  currentPage?: number;
   onPageChange: (page: number) => void;
+  onPerPageChange?: (n: number) => void;
 };
 
 export const Pagination: React.FC<Props> = ({
@@ -13,59 +14,97 @@ export const Pagination: React.FC<Props> = ({
   perPage,
   currentPage,
   onPageChange,
+  onPerPageChange,
 }) => {
-  const totalPages: number = Math.ceil(total / perPage);
+  const totalPages = Math.max(0, Math.ceil(total / perPage));
+  const raw = currentPage ?? 1;
+  const page = totalPages === 0 ? 1 : Math.min(Math.max(1, raw), totalPages);
+  const start = total === 0 ? 0 : (page - 1) * perPage + 1;
+  const end = Math.min(page * perPage, total);
+  const prevDisabled = page <= 1 || totalPages === 0;
+  const nextDisabled = page >= totalPages || totalPages === 0;
 
   return (
-    <ul className="pagination">
-      <li className={cn('page-item', { disabled: currentPage === 1 })}>
-        <a
-          data-cy="prevLink"
-          className="page-link"
-          href="#prev"
-          aria-disabled={currentPage === 1 ? 'true' : 'false'}
-          onClick={e => {
-            e.preventDefault();
-            if (currentPage - 1) {
-              onPageChange(currentPage - 1);
-            }
-          }}
-        >
-          «
-        </a>
-      </li>
-      {Array.from({ length: totalPages }, (_, i) => (
-        <li
-          key={i}
-          className={cn('page-item', { active: i + 1 === currentPage })}
-        >
-          <a
-            data-cy="pageLink"
-            className="page-link"
-            href="#1"
-            onClick={() => onPageChange(i + 1)}
+    <div>
+      <p className="lead" data-cy="info">
+        Page {page} (items {start} - {end} of {total})
+      </p>
+
+      <div className="form-group row">
+        <div className="col-3 col-sm-2 col-xl-1">
+          <select
+            data-cy="perPageSelector"
+            id="perPageSelector"
+            className="form-control"
+            value={perPage}
+            onChange={e => {
+              const val = Number(e.target.value);
+
+              onPerPageChange?.(val);
+            }}
           >
-            {i + 1}
+            <option value="3">3</option>
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+          </select>
+        </div>
+
+        <label htmlFor="perPageSelector" className="col-form-label col">
+          items per page
+        </label>
+      </div>
+
+      <ul className="pagination">
+        <li className={cn('page-item', { disabled: prevDisabled })}>
+          <a
+            data-cy="prevLink"
+            className="page-link"
+            href="#prev"
+            aria-disabled={prevDisabled}
+            onClick={e => {
+              e.preventDefault();
+              if (!prevDisabled) {
+                onPageChange(page - 1);
+              }
+            }}
+          >
+            «
           </a>
         </li>
-      ))}
+        {Array.from({ length: totalPages }, (_, i) => (
+          <li key={i} className={cn('page-item', { active: i + 1 === raw })}>
+            <a
+              data-cy="pageLink"
+              className="page-link"
+              href="#1"
+              onClick={e => {
+                e.preventDefault();
+                onPageChange(i + 1);
+              }}
+            >
+              {i + 1}
+            </a>
+          </li>
+        ))}
 
-      <li className={cn('page-item', { disabled: currentPage === totalPages })}>
-        <a
-          data-cy="nextLink"
-          className="page-link"
-          href="#next"
-          aria-disabled={currentPage >= totalPages ? 'true' : 'false'}
-          onClick={e => {
-            e.preventDefault();
-            if (currentPage < totalPages) {
-              onPageChange(currentPage + 1);
-            }
-          }}
-        >
-          »
-        </a>
-      </li>
-    </ul>
+        <li className={cn('page-item', { disabled: nextDisabled })}>
+          <a
+            data-cy="nextLink"
+            className="page-link"
+            href="#next"
+            aria-disabled={nextDisabled}
+            onClick={e => {
+              e.preventDefault();
+              if (!nextDisabled) {
+                onPageChange(page + 1);
+              }
+            }}
+          >
+            »
+          </a>
+        </li>
+      </ul>
+    </div>
   );
 };
